@@ -1,0 +1,4 @@
+interface:
+  display_name: "Browser Walkthrough Reporter"
+  short_description: "Browser walkthrough reports"
+  default_prompt: "Use this skill to inspect a project, design or run a browser-based simulated manual walkthrough, generate screenshots and three Markdown outputs, classify engineer-ready bugs separately from manual retest items, and update the project Kanban/test board."
