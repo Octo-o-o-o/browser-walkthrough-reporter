@@ -105,6 +105,18 @@ If the board already has filters or phases, verify them after updating. At minim
 - The direct "人工确认事项" list is visible.
 - Existing task filters still show the expected groups.
 
+## GitHub Issue Drafts
+
+When the user asks to file GitHub issues after all tests:
+
+- Create issues only from `bugs-for-engineers.md`, never from `manual-retest-needed.md`.
+- First reflect whether each candidate is truly a product issue.
+- Decide whether multiple bugs should be merged or split before drafting.
+- Use English for all issue titles and bodies.
+- Prefer draft files under `github-issues/` before live issue creation, and include a triage review explaining real-issue and merge/split decisions.
+- Use `references/github-issue-standard.md` for the exact template and filing rules.
+- Use `scripts/prepare_github_issues.py` to generate drafts or, with explicit user request, call `gh issue create`.
+
 ## Common Bug vs Manual Decisions
 
 Classify as a bug:

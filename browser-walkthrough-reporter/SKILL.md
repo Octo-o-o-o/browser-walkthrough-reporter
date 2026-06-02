@@ -1,6 +1,6 @@
 ---
 name: browser-walkthrough-reporter
-description: Browser-based simulated manual walkthrough planning, execution, and reporting for web apps and API-backed products. Use when Codex needs to inspect a project, design or run a Playwright/browser-tool walkthrough, collect screenshots, create per-run Markdown reports, generate engineer-ready bug reports, generate user-facing manual retest checklists, and update kanban.html or another test board with results.
+description: Plan/run browser walkthroughs for web/API apps; generate screenshots, reports, bug reports, manual retest lists, Kanban updates, and English GitHub issues.
 ---
 
 # Browser Walkthrough Reporter
@@ -18,7 +18,8 @@ description: Browser-based simulated manual walkthrough planning, execution, and
    - `bugs-for-engineers.md`: only clear bugs or bug candidates with engineer-ready reproduction detail.
    - `manual-retest-needed.md`: uncertain, blocked, fixture-dependent, or human-judgment items for the requester.
 8. Update `kanban.html` or the nearest test board after every run. Link all three documents, include at least one screenshot, and list "人工确认事项" directly in the card instead of only linking the manual retest document.
-9. Validate before final response: script syntax, Markdown existence, screenshot count, no secret leakage, test-board image/link rendering, phase/filter behavior if present, and no leftover walkthrough process.
+9. If the user asks to file GitHub issues, do this only after all requested test scopes are complete and the three run documents are final. Triage in English: verify each item is a real issue, decide which bugs should be merged or split, exclude manual retest/fixture gaps, then create professional issue drafts or call `gh issue create` only after explicit confirmation/request. Use `references/github-issue-standard.md`.
+10. Validate before final response: script syntax, Markdown existence, screenshot count, no secret leakage, test-board image/link rendering, phase/filter behavior if present, GitHub issue triage/drafts when requested, and no leftover walkthrough process.
 
 ## Classification Rules
 
@@ -44,6 +45,7 @@ Do not inflate the bug count by converting missing fixtures into product bugs. I
 ## Required Report Semantics
 
 Use the detailed standard in `references/reporting-standard.md` when designing or auditing a run.
+Use `references/github-issue-standard.md` when preparing or filing GitHub issues.
 
 Minimum run directory:
 
@@ -84,6 +86,32 @@ pgrep -fl "node scripts/browser-walkthrough.mjs" || true
 ```
 
 If the target project has no `kanban.html`, create or update the nearest equivalent test board, or record in `report.md` why no board update was possible.
+
+## GitHub Issue Support
+
+Default to issue drafts, not live issue creation. Run this only after all testing is complete and `report.md`, `bugs-for-engineers.md`, and `manual-retest-needed.md` have been reviewed:
+
+```sh
+python3 /path/to/browser-walkthrough-reporter/scripts/prepare_github_issues.py \
+  --bug-report doc/browser-walkthrough-reports/<run>/bugs-for-engineers.md \
+  --output-dir doc/browser-walkthrough-reports/<run>/github-issues
+```
+
+Review `github-issues/triage-review.md`, `manifest.json`, and each draft. Drafts marked `DRAFT_REVIEW_REQUIRED` are intentionally blocked from live filing until rewritten with complete English issue details.
+
+To create issues after explicit user request:
+
+```sh
+python3 /path/to/browser-walkthrough-reporter/scripts/prepare_github_issues.py \
+  --bug-report doc/browser-walkthrough-reports/<run>/bugs-for-engineers.md \
+  --repo OWNER/REPO \
+  --create \
+  --yes \
+  --label bug \
+  --label walkthrough
+```
+
+Before filing, verify the draft answers: "is this truly an issue?", "should this be merged with another bug?", "does it include complete environment, reproduction, expected/actual behavior, evidence, impact, and likely areas to inspect?", and "is every title/body fully English and free of secrets?".
 
 ## Safety
 

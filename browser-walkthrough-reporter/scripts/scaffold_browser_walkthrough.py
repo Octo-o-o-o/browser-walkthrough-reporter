@@ -78,6 +78,10 @@ Replace this section after reading the project:
 
 After every run, update `kanban.html` or the nearest test board. The record must include links to `report.md`, `bugs-for-engineers.md`, and `manual-retest-needed.md`, at least one screenshot, cleanup summary, and a direct "人工确认事项" list.
 
+## Optional GitHub Issue Filing
+
+After all tests finish and the three Markdown run documents are final, GitHub issues may be prepared from `bugs-for-engineers.md`. Default to English draft files under `github-issues/`. Only create live issues after explicit confirmation, after reflecting whether each item is truly an issue, after deciding whether related bugs should be merged or split, and after confirming the draft is complete enough for an engineer or AI agent to act on without follow-up questions.
+
 ## Validation Checklist
 
 - `node --check scripts/browser-walkthrough.mjs`
@@ -86,6 +90,7 @@ After every run, update `kanban.html` or the nearest test board. The record must
 - Confirm screenshots exist and names include module, timestamp, and status.
 - Confirm no secrets are present in reports, screenshots, or Kanban/test board.
 - Confirm Kanban/test board links and images render in a browser.
+- If GitHub issues are requested, confirm `github-issues/triage-review.md` exists and each English issue draft has triage reflection, merge/split decision, environment, reproduction, expected/actual behavior, evidence, impact, and likely inspection areas.
 """
 
 

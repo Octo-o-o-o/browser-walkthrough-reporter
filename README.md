@@ -9,7 +9,8 @@ The skill helps an agent:
 - record every step with `START` and terminal status rows;
 - capture screenshots for every step;
 - produce three per-run Markdown documents: full report, engineering bug report, and manual retest checklist;
-- update `kanban.html` or another test board with links, screenshots, and direct manual-confirmation items.
+- update `kanban.html` or another test board with links, screenshots, and direct manual-confirmation items;
+- prepare fully English GitHub issue drafts after testing, with real-issue reflection, merge/split decisions, and optional guarded `gh issue create` support.
 
 ## Repository Layout
 
@@ -20,8 +21,11 @@ browser-walkthrough-reporter/
 └── browser-walkthrough-reporter/
     ├── SKILL.md
     ├── agents/openai.yaml
+    ├── references/github-issue-standard.md
     ├── references/reporting-standard.md
-    └── scripts/scaffold_browser_walkthrough.py
+    └── scripts/
+        ├── prepare_github_issues.py
+        └── scaffold_browser_walkthrough.py
 ```
 
 The nested `browser-walkthrough-reporter/` directory is the actual skill folder. The repository root contains open-source project metadata only.
@@ -64,6 +68,16 @@ The scaffold creates:
 
 Adapt the generated script to the target project's routes, selectors, APIs, fixtures, cleanup rules, and test board before treating coverage as complete.
 
+After a completed run, prepare GitHub issue drafts from the engineering bug report:
+
+```sh
+python3 /path/to/browser-walkthrough-reporter/scripts/prepare_github_issues.py \
+  --bug-report doc/browser-walkthrough-reports/<run>/bugs-for-engineers.md \
+  --output-dir doc/browser-walkthrough-reports/<run>/github-issues
+```
+
+The script writes `triage-review.md`, `manifest.json`, and draft issue bodies. Live issue creation is disabled by default. Use `--create --yes --repo OWNER/REPO` only after explicit confirmation and after reviewing whether each candidate is truly an issue, whether related bugs should be merged or split, and whether the English draft is complete and secret-free.
+
 ## Output Contract
 
 Each run must create:
@@ -73,6 +87,7 @@ doc/browser-walkthrough-reports/<YYYYMMDD-HHmmss>-browser-walkthrough-<env>/
 ├── report.md
 ├── bugs-for-engineers.md
 ├── manual-retest-needed.md
+├── github-issues/        # optional, when GitHub issues are requested
 ├── screenshots/
 └── downloads/
 ```
