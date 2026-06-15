@@ -41,6 +41,9 @@ Do not inflate the bug count by converting missing fixtures into product bugs. I
 - If a route reaches a terminal `failed` state under dummy or low-budget settings, that can pass lifecycle coverage while still blocking artifact/report quality coverage.
 - If Kanban/test-board records link a manual checklist but do not show the checklist titles inline, update the record; the requester should not have to open another file to know what needs attention.
 - Treat cleanup summaries as evidence, not guarantees. Report unremovable test workspaces, invitations, or fixtures explicitly.
+- Never drive navigation by guessed localized labels. Discover nav targets from the app's stable selectors (`data-testid`, `role`, `id`, `aria-label`); a label you assume is `通用`/`General` may actually render as `常规`, `远程桌面` as `电脑工作台`, `Bridge` as `本地 Agent 桥接`. Guessed labels create false `BLOCKED`/`SKIP` rows that read like coverage gaps but are runner defects. If you must match by text, read the real rendered label first and key off a stable attribute for the click.
+- A `BLOCKED` caused by a selector miss is a runner defect, not a `Fixture blocked`. When a whole batch of same-shaped steps blocks (e.g. every settings group), suspect the selector strategy before reporting a coverage gap — re-derive the targets from the source and re-run.
+- If the test board has no insertion marker, the runner must self-heal (inject a walkthrough section before a known anchor or `</body>`) rather than silently skipping the board update. A silent skip reads as "board updated" when it was not. The scaffold runner now self-heals; keep that behavior in adapted runners.
 
 ## Required Report Semantics
 

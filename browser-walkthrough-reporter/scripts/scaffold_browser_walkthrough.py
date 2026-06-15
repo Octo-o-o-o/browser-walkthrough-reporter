@@ -256,9 +256,15 @@ async function updateKanbanRecord() {
   const kanbanPath = path.join(ROOT, "kanban.html");
   const exists = await fs.stat(kanbanPath).then(() => true).catch(() => false);
   if (!exists) return;
-  const html = await fs.readFile(kanbanPath, "utf8");
+  let html = await fs.readFile(kanbanPath, "utf8");
   const marker = '<div class="walkthrough-grid">';
-  if (!html.includes(marker)) return;
+  // Self-heal: most real test boards have no walkthrough marker. Inject a
+  // section (before </body>, else append) so the run never silently skips the
+  // board update. If even this is impossible, record why in report.md.
+  if (!html.includes(marker)) {
+    const section = `\n<section class="walkthrough-section">\n  <h2>Browser Walkthrough Runs</h2>\n  ${marker}\n  </div>\n</section>\n`;
+    html = html.includes("</body>") ? html.replace("</body>", `${section}</body>`) : `${html}${section}`;
+  }
   const recordId = `walkthrough-${runStamp}`;
   const manualItems = manualRetestItems().slice(0, 6);
   const shot = state.stepStatuses.find((s) => ["FAIL", "TIMEOUT", "BLOCKED"].includes(s.status) && s.shot) ?? state.stepStatuses.find((s) => s.shot);
