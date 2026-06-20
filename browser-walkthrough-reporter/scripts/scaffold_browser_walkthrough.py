@@ -110,6 +110,10 @@ try {
   );
 }
 
+// Host gotcha: dev servers (Vite and friends) often bind `localhost` only,
+// which can resolve to IPv6 ::1. A runner hardcoded to 127.0.0.1 then hits
+// ERR_CONNECTION_REFUSED on every step and screenshots a blank page. Use the
+// host the server actually prints; `curl` both if unsure.
 const WEB_URL = process.env.WALKTHROUGH_WEB_URL ?? "http://localhost:3000";
 const API_BASE_URL = process.env.WALKTHROUGH_API_BASE_URL ?? "";
 const TEST_EMAIL = process.env.WALKTHROUGH_EMAIL ?? "";
@@ -188,8 +192,17 @@ try {
 
 async function main() {
   await step("P0.1", "P0-WebUI", "web-ui", async () => {
-    await page.goto(WEB_URL, { waitUntil: "domcontentloaded", timeout: 30000 });
+    try {
+      await page.goto(WEB_URL, { waitUntil: "domcontentloaded", timeout: 30000 });
+    } catch (error) {
+      // A load failure here is a host/port-reachability problem (wrong host,
+      // server down, 127.0.0.1-vs-localhost), NOT product evidence.
+      return blocked(`web ui unreachable at ${WEB_URL}: ${error.message}. Check host (localhost vs 127.0.0.1) and that the dev/preview server is up.`);
+    }
     await page.waitForTimeout(1500);
+    if (!(await assertRendered(page))) {
+      return fail(`web ui at ${WEB_URL} loaded but rendered blank/error — verify the entry/host before treating this as a product bug`);
+    }
     return "web ui loaded";
   });
 
@@ -209,6 +222,11 @@ async function main() {
 }
 
 async function projectSpecificWalkthrough() {
+  // Adapt this to the project: discover nav targets from STABLE selectors
+  // (data-testid / role / id), never guessed localized labels, and gate each
+  // step's PASS on a positive assertion — call assertRendered(page) (or a
+  // stricter per-screen check) after every navigation/resize. An action that
+  // merely did not throw is not a PASS on a blank or crashed page.
   await step("TODO.1", "Project-Specific-Coverage", "project", async () => {
     return blocked("Adapt scripts/browser-walkthrough.mjs to this project's routes, selectors, APIs, fixtures, and cleanup before treating coverage as complete.");
   });
@@ -239,6 +257,23 @@ function fail(summary) {
 
 function blocked(summary) {
   return { status: "BLOCKED", summary };
+}
+
+async function assertRendered(page) {
+  // Judge render health from the whole document minus the fixed chrome, NOT a
+  // single container: many apps render list/detail screens outside <main>, so a
+  // <main>-only check yields a batch of false "empty" failures while the
+  // screenshots show real UI. Healthy == real content present AND no error
+  // boundary. Keep this as the floor for every PASS so a blank/crashed page
+  // cannot pass just because an action did not throw.
+  return page.evaluate(() => {
+    const bodyTxt = document.body?.textContent ?? "";
+    const chrome = (document.querySelector('[role="navigation"], nav')?.textContent ?? "")
+      + (document.querySelector('[role="banner"], header')?.textContent ?? "");
+    const contentChars = bodyTxt.replace(/\s/g, "").length - chrome.replace(/\s/g, "").length;
+    const errorBoundary = /Something went wrong|ErrorBoundary|Cannot read prop|出错了|发生错误|页面崩溃/.test(bodyTxt);
+    return contentChars > 40 && !errorBoundary;
+  });
 }
 
 async function appendStep(status, id, object, summary, request, evidence) {

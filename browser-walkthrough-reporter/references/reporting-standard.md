@@ -4,6 +4,7 @@
 
 The walkthrough plan must include:
 
+- Host and entry selection: which delivery unit (pure web / SPA / SSR / Electron-or-Tauri renderer / mobile WebView / admin console), which dev/preview/production URL, and whether the entry needs a native bridge, a renderer-only mock, or a logged-in session to render working UI. State plainly what that entry can and cannot prove.
 - Environment variables and credential handling.
 - Scope definitions: `config`, `usage`, `full`, `diagnostic`.
 - Feature coverage mapped to project modules, routes, APIs, and test-board tasks.
@@ -100,8 +101,8 @@ Use relative links and no base64 images.
 If the board already has filters or phases, verify them after updating. At minimum, open the board with a browser tool and check that:
 
 - The latest record exists.
-- Links to all three documents exist.
-- Referenced screenshots load.
+- Links to all three documents exist **and their targets exist on disk** (`stat` them — a rendered board can still link missing files; never leave a record that points at an empty run directory).
+- Referenced screenshots load **and the image files exist on disk**.
 - The direct "人工确认事项" list is visible.
 - Existing task filters still show the expected groups.
 
