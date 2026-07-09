@@ -45,8 +45,13 @@ def make_english_title(bug: BugSection) -> str:
     if bug.bug_id in KNOWN_TITLES:
         return KNOWN_TITLES[bug.bug_id]
     words = re.sub(r"^BUG-(P\d+-)?", "", bug.bug_id).replace("-", " ").strip()
+    area = words.split(" ", 1)[0].title() if words else "Walkthrough"
+    # Prefer the human-written heading title from bugs-for-engineers.md; fall
+    # back to the id-derived words only when the heading is unusable (empty or
+    # non-English, which the ASCII gate would reject at filing time anyway).
+    if bug.source_title and is_ascii(bug.source_title):
+        return f"[{area}] {bug.source_title}"
     title = words.title() if words else bug.bug_id
-    area = title.split(" ", 1)[0] if title else "Walkthrough"
     return f"[{area}] {title}"
 
 
@@ -178,7 +183,13 @@ def impact_for_bug(bug: BugSection) -> str:
 
 
 def needs_manual_english_rewrite(bug: BugSection) -> bool:
-    return bug.bug_id not in KNOWN_TITLES
+    if bug.bug_id not in KNOWN_TITLES:
+        return True
+    # The KNOWN_TITLES fast-path bakes in prose from one historical engagement.
+    # If a different project reuses the same bug id, the canned text would be
+    # wrong — require the section body to actually look like that bug before
+    # letting the draft skip manual review.
+    return "webhook" not in bug.source_body.lower()
 
 
 def infer_report_path_from_bug_report(bug_report: Path) -> str:

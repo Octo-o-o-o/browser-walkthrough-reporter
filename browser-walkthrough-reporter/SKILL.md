@@ -1,6 +1,6 @@
 ---
 name: browser-walkthrough-reporter
-description: Plan/run browser walkthroughs for web/API apps; generate screenshots, reports, bug reports, manual retest lists, Kanban updates, and English GitHub issues.
+description: Plan and run evidence-grade browser walkthroughs for web/API/Electron/WebView apps, producing per-step screenshots, a factual report.md, bugs-for-engineers.md, manual-retest-needed.md, test-board/kanban updates, and optional English GitHub issues. Use when asked to walk through a product in a browser, run a UI regression sweep against dev/staging, verify every page/route renders, turn a walkthrough into engineer-ready bug reports, 浏览器走查, 页面巡检, 全站点检, or file walkthrough findings as GitHub issues. Not for writing automated test suites or unit tests.
 ---
 
 # Browser Walkthrough Reporter

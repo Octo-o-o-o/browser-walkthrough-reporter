@@ -208,12 +208,22 @@ async function main() {
 
   if (API_BASE_URL) {
     await step("P0.2", "P0-Health", "api", async () => {
-      const response = await page.evaluate(async (url) => {
-        const res = await fetch(new URL("/health", url).toString()).catch((error) => ({ status: 0, text: () => String(error) }));
-        return { status: res.status, text: await res.text().catch(() => "") };
-      }, API_BASE_URL);
-      if (response.status >= 500 || response.status === 0) return fail(`health status=${response.status}`);
-      return `health status=${response.status}`;
+      // Use Playwright's request API, not in-page fetch: an in-page fetch is
+      // subject to CORS, so a healthy API can read as status=0 and produce a
+      // false FAIL when the page origin differs from the API origin.
+      // URL gotcha: new URL("/health", base) DROPS any path prefix in the base
+      // (https://x.com/api -> https://x.com/health). Resolve relative to a
+      // trailing-slash base so prefixed API gateways keep their prefix.
+      const apiBase = API_BASE_URL.endsWith("/") ? API_BASE_URL : `${API_BASE_URL}/`;
+      const healthUrl = new URL("health", apiBase).toString();
+      let response;
+      try {
+        response = await context.request.get(healthUrl, { timeout: 15000 });
+      } catch (error) {
+        return fail(`health request to ${healthUrl} did not connect: ${error.message}`);
+      }
+      if (response.status() >= 500) return fail(`health status=${response.status()}`);
+      return `health status=${response.status()}`;
     });
   }
 
